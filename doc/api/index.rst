@@ -6,15 +6,18 @@ U-Boot API documentation
 .. toctree::
    :maxdepth: 2
 
+   bootcount
    clk
    dfu
    dm
    efi
    event
+   fs
    getopt
    interrupt
+   i3c
+   led
    linker_lists
-   lmb
    logging
    nvmem
    part
@@ -22,6 +25,8 @@ U-Boot API documentation
    rng
    sandbox
    serial
+   setjmp
    sysreset
    timer
    unicode
+   uthread

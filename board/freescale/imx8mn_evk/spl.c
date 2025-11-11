@@ -4,7 +4,6 @@
  *
  */
 
-#include <common.h>
 #include <command.h>
 #include <cpu_func.h>
 #include <hang.h>
@@ -115,8 +114,6 @@ void board_init_f(ulong dummy)
 	int ret;
 
 	arch_cpu_init();
-
-	init_uart_clk(1);
 
 	timer_init();
 

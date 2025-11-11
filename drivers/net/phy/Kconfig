@@ -2,16 +2,12 @@
 config BITBANGMII
 	bool "Bit-banged ethernet MII management channel support"
 
-config BITBANGMII_MULTI
-	bool "Enable the multi bus support"
-	depends on BITBANGMII
-
 config MV88E6352_SWITCH
 	bool "Marvell 88E6352 switch support"
 
 menuconfig PHYLIB
 	bool "Ethernet PHY (physical media interface) support"
-	depends on NET
+	depends on NET || NET_LWIP
 	help
 	  Enable Ethernet PHY (physical media interface) support.
 
@@ -22,6 +18,15 @@ config PHY_ADDR_ENABLE
 	default y if ARCH_SUNXI
 	help
 	  Select this if you want to control which phy address is used
+
+config PHY_ANEG_TIMEOUT
+	int "PHY auto-negotiation timeout"
+	default 4000
+	help
+	  Value of PHY auto-negotiation timeout with the base being
+	  "decimal" and the unit being "millisecond". This can be
+	  overridden by the "phy_aneg_timeout" environment variable
+	  that has the same base (decimal) and unit (millisecond).
 
 if PHY_ADDR_ENABLE
 config PHY_ADDR
@@ -51,6 +56,7 @@ endif # B53_SWITCH
 
 config MV88E61XX_SWITCH
 	bool "Marvell MV88E61xx Ethernet switch PHY support."
+	depends on !COMPILE_TEST
 
 if MV88E61XX_SWITCH
 
@@ -114,6 +120,7 @@ config PHY_BROADCOM
 
 config PHY_CORTINA
 	bool "Cortina Ethernet PHYs support"
+	depends on !COMPILE_TEST
 
 config SYS_CORTINA_NO_FW_UPLOAD
 	bool "Cortina firmware loading support"
@@ -178,6 +185,8 @@ config PHY_MARVELL_10G
 	bool "Marvell Alaska 10Gbit PHYs"
 	help
 	  Support for the Marvell Alaska MV88X3310 and compatible PHYs.
+
+source "drivers/net/phy/mediatek/Kconfig"
 
 config PHY_MESON_GXL
 	bool "Amlogic Meson GXL Internal PHY support"
@@ -312,6 +321,10 @@ config PHY_TI_DP83867
 	---help---
 	  Adds support for the TI DP83867 1Gbit PHY.
 
+config SPL_PHY_TI_DP83867
+	select PHY_TI
+	bool "Texas Instruments Ethernet DP83867 PHY support (SPL)"
+
 config PHY_TI_DP83869
 	select PHY_TI
 	bool "Texas Instruments Ethernet DP83869 PHY support"
@@ -362,6 +375,7 @@ config PHY_FIXED
 
 config PHY_NCSI
 	bool "NC-SI based PHY"
+	depends on NET
 
 endif #PHYLIB
 

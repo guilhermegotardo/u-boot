@@ -16,6 +16,7 @@ ENTRY(_start)
 SECTIONS
 {
 	. = ALIGN(4);
+	__image_copy_start = ADDR(.text);
 	.text : {
 		arch/riscv/cpu/start.o	(.text)
 		*(.text*)
@@ -44,10 +45,9 @@ SECTIONS
 		__binman_sym_end = .;
 	} > .spl_mem
 
-	. = ALIGN(8);
-
 	_end = .;
 	_image_binary_end = .;
+	__image_copy_end = .;
 
 	.bss : {
 		__bss_start = .;

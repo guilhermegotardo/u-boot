@@ -8,7 +8,6 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#include <linux/kconfig.h>
 #include <linux/stringify.h>
 
 /* place code in last 4 MiB of RAM */
@@ -27,9 +26,6 @@
 
 #define TQMA6_SPI_FLASH_SECTOR_SIZE	SZ_64K
 
-/* I2C Configs */
-#define CFG_I2C_MULTI_BUS
-
 #if !defined(CONFIG_DM_PMIC)
 #define CFG_POWER_PFUZE100_I2C_ADDR	0x08
 #define TQMA6_PFUZE100_I2C_BUS		2
@@ -37,9 +33,6 @@
 
 /* MMC Configs */
 #define CFG_SYS_FSL_ESDHC_ADDR	0
-
-/* USB Configs */
-#define CFG_MXC_USB_PORTSC	(PORT_PTS_UTMI | PORT_PTS_PTW)
 
 #if defined(CONFIG_TQMA6X_MMC_BOOT)
 
@@ -61,7 +54,7 @@
 	"fdt_size="__stringify(TQMA6_FDT_SECTOR_COUNT)"\0"                     \
 	"kernel_start="__stringify(TQMA6_KERNEL_SECTOR_START)"\0"              \
 	"kernel_size="__stringify(TQMA6_KERNEL_SECTOR_COUNT)"\0"               \
-	"mmcdev="__stringify(CONFIG_SYS_MMC_ENV_DEV)"\0"                       \
+	"mmcdev="__stringify(CONFIG_ENV_MMC_DEVICE_INDEX)"\0"                       \
 	"loadimage=mmc dev ${mmcdev}; "                                        \
 		"mmc read ${loadaddr} ${kernel_start} ${kernel_size};\0"       \
 	"loadfdt=mmc dev ${mmcdev}; "                                          \

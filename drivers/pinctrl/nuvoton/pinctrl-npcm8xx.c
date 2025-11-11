@@ -23,6 +23,7 @@
 #define TIPRSTC		0x50
 #define CORSTC		0x5c
 #define FLOCKR1		0x74
+#define INTCR		0x3c
 #define INTCR4		0xc0
 #define I2CSEGSEL	0xe0
 #define MFSEL1		0x260
@@ -48,6 +49,7 @@
 #define GPIO_OES	0x70 /* Output Enable Set */
 #define GPIO_OEC	0x74 /* Output Enable Clear */
 
+#define NPCM8XX_NUM_GPIO_BANK	8
 #define NPCM8XX_GPIO_PER_BANK	32
 #define GPIOX_OFFSET	16
 
@@ -279,6 +281,7 @@ struct npcm8xx_pinctrl_priv {
 	FUNC(lkgpo2, FLOCKR1, 8, 9) \
 	FUNC(nprd_smi, FLOCKR1, 20, 190) \
 	FUNC(mmcwp, FLOCKR1, 24, 153) \
+	FUNC(vcdhs, INTCR, 27) \
 	FUNC(rg2refck, INTCR4, 6) \
 	FUNC(r1en, INTCR4, 12) \
 	FUNC(r2en, INTCR4, 13) \
@@ -967,6 +970,18 @@ static int npcm8xx_pinconf_set(struct udevice *dev, unsigned int selector,
 }
 #endif
 
+static void npcm8xx_pinctrl_clear_events(struct npcm8xx_pinctrl_priv *priv)
+{
+	void __iomem *base;
+	int i;
+
+	for (i = 0; i < NPCM8XX_NUM_GPIO_BANK; i++) {
+		base = priv->gpio_base + (0x1000 * i);
+		clrbits_le32(base + GPIO_EVEN, 0xFFFFFFFF);
+		setbits_le32(base + GPIO_EVST, 0xFFFFFFFF);
+	}
+}
+
 static struct pinctrl_ops npcm8xx_pinctrl_ops = {
 	.set_state	= pinctrl_generic_set_state,
 	.get_pins_count = npcm8xx_get_pins_count,
@@ -1001,6 +1016,11 @@ static int npcm8xx_pinctrl_probe(struct udevice *dev)
 	if (IS_ERR(priv->rst_regmap))
 		return -EINVAL;
 
+	/*
+	 * Clear all previous gpio events, otherwise it may produce
+	 * unexpected interrupts during kernel booting.
+	 */
+	npcm8xx_pinctrl_clear_events(priv);
 	return 0;
 }
 

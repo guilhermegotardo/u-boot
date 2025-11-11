@@ -3,7 +3,6 @@
  * Copyright (C) 2020 Dario Binacchi <dariobin@libero.it>
  */
 
-#include <common.h>
 #include <clk.h>
 #include <dm.h>
 #include <dm/device_compat.h>
@@ -235,7 +234,7 @@ static int tilcdc_probe(struct udevice *dev)
 		return -EINVAL;
 	}
 
-	err = uclass_get_device_by_name(UCLASS_CLK, "lcd_gclk@534", &clk_dev);
+	err = uclass_get_device_by_name(UCLASS_CLK, "clock-lcd-gclk@534", &clk_dev);
 	if (err) {
 		dev_err(dev, "failed to get lcd_gclk device\n");
 		return err;
@@ -253,7 +252,7 @@ static int tilcdc_probe(struct udevice *dev)
 		return rate;
 	}
 
-	err = uclass_get_device_by_name(UCLASS_CLK, "dpll_disp_m2_ck@4a4",
+	err = uclass_get_device_by_name(UCLASS_CLK, "clock-dpll-disp-m2@4a4",
 					&clk_dev);
 	if (err) {
 		dev_err(dev, "failed to get dpll_disp_m2 clock device\n");

@@ -7,3 +7,5 @@ Samsung
    :maxdepth: 2
 
    axy17lte
+   e850-96
+   n1

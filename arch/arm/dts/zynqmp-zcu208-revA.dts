@@ -46,7 +46,7 @@
 	gpio-keys {
 		compatible = "gpio-keys";
 		autorepeat;
-		sw19 {
+		switch-19 {
 			label = "sw19";
 			gpios = <&gpio 22 GPIO_ACTIVE_HIGH>;
 			linux,code = <KEY_DOWN>;
@@ -68,7 +68,7 @@
 		compatible = "iio-hwmon";
 		io-channels = <&vccint 0>, <&vccint 1>, <&vccint 2>, <&vccint 3>;
 	};
-	ina226-vccint-io-bram-ps {
+	ina226-vccint-io-bram {
 		compatible = "iio-hwmon";
 		io-channels = <&vccint_io_bram_ps 0>, <&vccint_io_bram_ps 1>, <&vccint_io_bram_ps 2>, <&vccint_io_bram_ps 3>;
 	};
@@ -205,7 +205,7 @@
 		  "ENET_RX_CTRL", "ENET_MDC", "ENET_MDIO", /* 75 - 77, MIO end and EMIO start */
 		  "", "", /* 78 - 79 */
 		  "", "", "", "", "", /* 80 - 84 */
-		  "", "", "", "", "", /* 85 -89 */
+		  "", "", "", "", "", /* 85 - 89 */
 		  "", "", "", "", "", /* 90 - 94 */
 		  "", "", "", "", "", /* 95 - 99 */
 		  "", "", "", "", "", /* 100 - 104 */
@@ -600,7 +600,7 @@
 		};
 	};
 
-	pinctrl_i2c0_gpio: i2c0-gpio {
+	pinctrl_i2c0_gpio: i2c0-gpio-grp {
 		mux {
 			groups = "gpio0_14_grp", "gpio0_15_grp";
 			function = "gpio0";
@@ -627,7 +627,7 @@
 		};
 	};
 
-	pinctrl_i2c1_gpio: i2c1-gpio {
+	pinctrl_i2c1_gpio: i2c1-gpio-grp {
 		mux {
 			groups = "gpio0_16_grp", "gpio0_17_grp";
 			function = "gpio0";

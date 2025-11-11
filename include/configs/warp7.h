@@ -42,7 +42,7 @@
 	"fdtovaddr=0x83100000\0" \
 	"boot_fdt=try\0" \
 	"ip_dyn=yes\0" \
-	"mmcdev="__stringify(CONFIG_SYS_MMC_ENV_DEV)"\0" \
+	"mmcdev="__stringify(CONFIG_ENV_MMC_DEVICE_INDEX)"\0" \
 	"mmcpart=1\0" \
 	"rootpart=" __stringify(CONFIG_WARP7_ROOT_PART) "\0" \
 	"finduuid=part uuid mmc 0:${rootpart} uuid\0" \
@@ -92,8 +92,6 @@
 
 #define CFG_SYS_FSL_USDHC_NUM	1
 
-
-#define CFG_MXC_USB_PORTSC		(PORT_PTS_UTMI | PORT_PTS_PTW)
 
 /* USB Device Firmware Update support */
 #define DFU_DEFAULT_POLL_TIMEOUT	300

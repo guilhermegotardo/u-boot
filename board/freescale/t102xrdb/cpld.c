@@ -7,8 +7,9 @@
  * The following macros need to be defined:
  */
 
-#include <common.h>
+#include <config.h>
 #include <command.h>
+#include <linux/string.h>
 #include <asm/io.h>
 #include "cpld.h"
 

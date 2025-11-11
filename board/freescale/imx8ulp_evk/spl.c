@@ -3,7 +3,6 @@
  * Copyright 2021 NXP
  */
 
-#include <common.h>
 #include <init.h>
 #include <spl.h>
 #include <asm/io.h>
@@ -70,8 +69,8 @@ void display_ele_fw_version(void)
 	} else {
 		printf("ELE firmware version %u.%u.%u-%x",
 		       (fw_version & (0x00ff0000)) >> 16,
-		       (fw_version & (0x0000ff00)) >> 8,
-		       (fw_version & (0x000000ff)), sha1);
+		       (fw_version & (0x0000fff0)) >> 4,
+		       (fw_version & (0x0000000f)), sha1);
 		((fw_version & (0x80000000)) >> 31) == 1 ? puts("-dirty\n") : puts("\n");
 	}
 }

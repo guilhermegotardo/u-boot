@@ -1,6 +1,9 @@
 .. SPDX-License-Identifier: GPL-2.0+
 .. Copyright 2023, Heinrich Schuchardt <heinrich.schuchardt@canonical.com>
 
+.. index::
+   single: bdinfo (command)
+
 bdinfo command
 ==============
 
@@ -112,8 +115,3 @@ Configuration
 -------------
 
 The bdinfo command is available if CONFIG_CMD_BDI=y.
-
-Return code
------------
-
-The return code $? is 0 (true).

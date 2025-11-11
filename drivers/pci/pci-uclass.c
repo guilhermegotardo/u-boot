@@ -6,7 +6,6 @@
 
 #define LOG_CATEGORY UCLASS_PCI
 
-#include <common.h>
 #include <dm.h>
 #include <errno.h>
 #include <init.h>
@@ -386,8 +385,10 @@ static int pci_read_config(pci_dev_t bdf, int offset, unsigned long *valuep,
 	int ret;
 
 	ret = pci_get_bus(PCI_BUS(bdf), &bus);
-	if (ret)
+	if (ret) {
+		*valuep = 0xffffffff;
 		return ret;
+	}
 
 	return pci_bus_read_config(bus, bdf, offset, valuep, size);
 }
@@ -409,8 +410,10 @@ int pci_read_config32(pci_dev_t bdf, int offset, u32 *valuep)
 	int ret;
 
 	ret = pci_read_config(bdf, offset, &value, PCI_SIZE_32);
-	if (ret)
+	if (ret) {
+		*valuep = 0xffffffff;
 		return ret;
+	}
 	*valuep = value;
 
 	return 0;
@@ -422,8 +425,10 @@ int pci_read_config16(pci_dev_t bdf, int offset, u16 *valuep)
 	int ret;
 
 	ret = pci_read_config(bdf, offset, &value, PCI_SIZE_16);
-	if (ret)
+	if (ret) {
+		*valuep = 0xffff;
 		return ret;
+	}
 	*valuep = value;
 
 	return 0;
@@ -435,8 +440,10 @@ int pci_read_config8(pci_dev_t bdf, int offset, u8 *valuep)
 	int ret;
 
 	ret = pci_read_config(bdf, offset, &value, PCI_SIZE_8);
-	if (ret)
+	if (ret) {
+		*valuep = 0xff;
 		return ret;
+	}
 	*valuep = value;
 
 	return 0;
@@ -448,8 +455,10 @@ int dm_pci_read_config8(const struct udevice *dev, int offset, u8 *valuep)
 	int ret;
 
 	ret = dm_pci_read_config(dev, offset, &value, PCI_SIZE_8);
-	if (ret)
+	if (ret) {
+		*valuep = 0xff;
 		return ret;
+	}
 	*valuep = value;
 
 	return 0;
@@ -461,8 +470,10 @@ int dm_pci_read_config16(const struct udevice *dev, int offset, u16 *valuep)
 	int ret;
 
 	ret = dm_pci_read_config(dev, offset, &value, PCI_SIZE_16);
-	if (ret)
+	if (ret) {
+		*valuep = 0xffff;
 		return ret;
+	}
 	*valuep = value;
 
 	return 0;
@@ -474,8 +485,10 @@ int dm_pci_read_config32(const struct udevice *dev, int offset, u32 *valuep)
 	int ret;
 
 	ret = dm_pci_read_config(dev, offset, &value, PCI_SIZE_32);
-	if (ret)
+	if (ret) {
+		*valuep = 0xffffffff;
 		return ret;
+	}
 	*valuep = value;
 
 	return 0;
@@ -723,7 +736,7 @@ static bool pci_need_device_pre_reloc(struct udevice *bus, uint vendor,
 	u32 vendev;
 	int index;
 
-	if (spl_phase() == PHASE_SPL && CONFIG_IS_ENABLED(PCI_PNP))
+	if (xpl_phase() == PHASE_SPL && CONFIG_IS_ENABLED(PCI_PNP))
 		return true;
 
 	for (index = 0;
@@ -799,7 +812,7 @@ static int pci_find_and_bind_driver(struct udevice *parent,
 			if (!(gd->flags & GD_FLG_RELOC) &&
 			    !(drv->flags & DM_FLAG_PRE_RELOC) &&
 			    (!CONFIG_IS_ENABLED(PCI_PNP) ||
-			     spl_phase() != PHASE_SPL))
+			     xpl_phase() != PHASE_SPL))
 				return log_msg_ret("pre", -EPERM);
 
 			/*
@@ -1610,6 +1623,17 @@ void *dm_pci_map_bar(struct udevice *dev, int bar, size_t offset, size_t len,
 	/* read BAR address */
 	dm_pci_read_config32(udev, bar, &bar_response);
 	pci_bus_addr = (pci_addr_t)(bar_response & ~0xf);
+
+	/* This has a lot of baked in assumptions, but essentially tries
+	 * to mirror the behavior of BAR assignment for 64 Bit enabled
+	 * hosts and 64 bit placeable BARs in the auto assign code.
+	 */
+#if defined(CONFIG_SYS_PCI_64BIT)
+	if (bar_response & PCI_BASE_ADDRESS_MEM_TYPE_64) {
+		dm_pci_read_config32(udev, bar + 4, &bar_response);
+		pci_bus_addr |= (pci_addr_t)bar_response << 32;
+	}
+#endif /* CONFIG_SYS_PCI_64BIT */
 
 	if (~((pci_addr_t)0) - pci_bus_addr < offset)
 		return NULL;

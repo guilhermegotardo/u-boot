@@ -8,7 +8,7 @@
 
 #define LOG_CATEGORY LOGC_EFI
 
-#include <common.h>
+#include <efi_device_path.h>
 #include <efi_loader.h>
 #include <efi_variable.h>
 #include <env.h>
@@ -21,7 +21,9 @@
 #include <sort.h>
 #include <sysreset.h>
 #include <asm/global_data.h>
+#include <u-boot/uuid.h>
 
+#include <asm/sections.h>
 #include <crypto/pkcs7.h>
 #include <crypto/pkcs7_parser.h>
 #include <linux/err.h>
@@ -284,33 +286,12 @@ out:
 }
 
 #if defined(CONFIG_EFI_CAPSULE_AUTHENTICATE)
-int efi_get_public_key_data(void **pkey, efi_uintn_t *pkey_len)
+static int efi_get_public_key_data(const void **pkey, efi_uintn_t *pkey_len)
 {
-	const void *fdt_blob = gd->fdt_blob;
-	const void *blob;
-	const char *cnode_name = "capsule-key";
-	const char *snode_name = "signature";
-	int sig_node;
-	int len;
+	const void *blob = __efi_capsule_sig_begin;
+	const int len = __efi_capsule_sig_end - __efi_capsule_sig_begin;
 
-	sig_node = fdt_subnode_offset(fdt_blob, 0, snode_name);
-	if (sig_node < 0) {
-		log_err("Unable to get signature node offset\n");
-
-		return -FDT_ERR_NOTFOUND;
-	}
-
-	blob = fdt_getprop(fdt_blob, sig_node, cnode_name, &len);
-
-	if (!blob || len < 0) {
-		log_err("Unable to get capsule-key value\n");
-		*pkey = NULL;
-		*pkey_len = 0;
-
-		return -FDT_ERR_NOTFOUND;
-	}
-
-	*pkey = (void *)blob;
+	*pkey = blob;
 	*pkey_len = len;
 
 	return 0;
@@ -321,7 +302,8 @@ efi_status_t efi_capsule_authenticate(const void *capsule, efi_uintn_t capsule_s
 {
 	u8 *buf;
 	int ret;
-	void *fdt_pkey, *pkey;
+	void *pkey;
+	const void *stored_pkey;
 	efi_uintn_t pkey_len;
 	uint64_t monotonic_count;
 	struct efi_signature_store *truststore;
@@ -373,7 +355,7 @@ efi_status_t efi_capsule_authenticate(const void *capsule, efi_uintn_t capsule_s
 		goto out;
 	}
 
-	ret = efi_get_public_key_data(&fdt_pkey, &pkey_len);
+	ret = efi_get_public_key_data(&stored_pkey, &pkey_len);
 	if (ret < 0)
 		goto out;
 
@@ -381,7 +363,7 @@ efi_status_t efi_capsule_authenticate(const void *capsule, efi_uintn_t capsule_s
 	if (!pkey)
 		goto out;
 
-	memcpy(pkey, fdt_pkey, pkey_len);
+	memcpy(pkey, stored_pkey, pkey_len);
 	truststore = efi_build_signature_store(pkey, pkey_len);
 	if (!truststore)
 		goto out;
@@ -481,6 +463,11 @@ static __maybe_unused efi_status_t fwu_empty_capsule_process(
 		if (ret != EFI_SUCCESS)
 			log_err("Unable to set the Accept bit for the image %pUs\n",
 				image_guid);
+
+		status = fwu_state_machine_updates(0, active_idx);
+		if (status < 0)
+			ret = EFI_DEVICE_ERROR;
+
 	}
 
 	return ret;
@@ -522,11 +509,10 @@ static __maybe_unused efi_status_t fwu_post_update_process(bool fw_accept_os)
 		log_err("Failed to update FWU metadata index values\n");
 	} else {
 		log_debug("Successfully updated the active_index\n");
-		if (fw_accept_os) {
-			status = fwu_trial_state_ctr_start();
-			if (status < 0)
-				ret = EFI_DEVICE_ERROR;
-		}
+		status = fwu_state_machine_updates(fw_accept_os ? 1 : 0,
+						   update_index);
+		if (status < 0)
+			ret = EFI_DEVICE_ERROR;
 	}
 
 	return ret;
@@ -560,15 +546,19 @@ static efi_status_t efi_capsule_update_firmware(
 	bool fw_accept_os;
 
 	if (IS_ENABLED(CONFIG_FWU_MULTI_BANK_UPDATE)) {
-		if (fwu_empty_capsule_checks_pass() &&
-		    fwu_empty_capsule(capsule_data))
-			return fwu_empty_capsule_process(capsule_data);
+		if (fwu_empty_capsule(capsule_data)) {
+			if (fwu_empty_capsule_checks_pass()) {
+				return fwu_empty_capsule_process(capsule_data);
+			} else {
+				log_err("FWU empty capsule checks failed. Cannot start update\n");
+				return EFI_INVALID_PARAMETER;
+			}
+		}
 
 		if (!fwu_update_checks_pass()) {
 			log_err("FWU checks failed. Cannot start update\n");
 			return EFI_INVALID_PARAMETER;
 		}
-
 
 		/* Obtain the update_index from the platform */
 		status = fwu_plat_get_update_index(&update_index);
@@ -1106,8 +1096,10 @@ static efi_status_t efi_capsule_scan_dir(u16 ***files, unsigned int *num)
 	while (1) {
 		tmp_size = dirent_size;
 		ret = EFI_CALL((*dirh->read)(dirh, &tmp_size, dirent));
-		if (ret != EFI_SUCCESS)
+		if (ret != EFI_SUCCESS) {
+			free(tmp_files);
 			goto err;
+		}
 		if (!tmp_size)
 			break;
 

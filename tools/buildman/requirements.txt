@@ -1,2 +1,2 @@
-jsonschema==4.17.3
-pyyaml==6.0
+filelock==3.0.12
+importlib_resources==6.5.2

@@ -134,7 +134,9 @@ static struct spl_info spl_infos[] = {
 	{ "rk3399", "RK33", 0x30000 - 0x2000, false, RK_HEADER_V1 },
 	{ "rv1108", "RK11", 0x1800, false, RK_HEADER_V1 },
 	{ "rv1126", "110B", 0x10000 - 0x1000, false, RK_HEADER_V1 },
+	{ "rk3528", "RK35", 0x10000 - 0x1000, false, RK_HEADER_V2 },
 	{ "rk3568", "RK35", 0x10000 - 0x1000, false, RK_HEADER_V2 },
+	{ "rk3576", "RK35", 0x80000 - 0x1000, false, RK_HEADER_V2 },
 	{ "rk3588", "RK35", 0x100000 - 0x1000, false, RK_HEADER_V2 },
 };
 
@@ -277,7 +279,7 @@ bool rkcommon_need_rc4_spl(struct image_tool_params *params)
 	return info->spl_rc4;
 }
 
-bool rkcommon_is_header_v2(struct image_tool_params *params)
+static bool rkcommon_is_header_v2(struct image_tool_params *params)
 {
 	struct spl_info *info = rkcommon_get_spl_info(params->imagename);
 
@@ -470,7 +472,7 @@ int rkcommon_verify_header(unsigned char *buf, int size,
 	 * If no 'imagename' is specified via the commandline (e.g. if this is
 	 * 'dumpimage -l' w/o any further constraints), we accept any spl_info.
 	 */
-	if (params->imagename == NULL)
+	if (params->imagename == NULL || !strlen(params->imagename))
 		return 0;
 
 	/* Match the 'imagename' against the 'spl_hdr' found */

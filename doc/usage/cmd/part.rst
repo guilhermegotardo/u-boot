@@ -1,10 +1,13 @@
 .. SPDX-License-Identifier: GPL-2.0+:
 
+.. index::
+   single: part (command)
+
 part command
 ============
 
-Synopis
--------
+Synopsis
+--------
 
 ::
 
@@ -47,7 +50,7 @@ The 'part list' command prints or sets an environment variable to the list of pa
     varname
         an optional environment variable to store the list of partitions value into.
 
-The 'part start' commnad sets an environment variable to the start of the partition (in blocks),
+The 'part start' command sets an environment variable to the start of the partition (in blocks),
 part can be either partition number or partition name.
 
     interface
@@ -220,9 +223,3 @@ This shows looking at a device with multiple partition tables::
             type:	ebd0a0a2-b9e5-4433-87c0-68b6b72699c7
             guid:	a0891d7e-b930-4513-94da-f629dbd637b2
     =>
-
-Return value
-------------
-
-The return value $? is set to 0 (true) if the command succededd. If an
-error occurs, the return value $? is set to 1 (false).

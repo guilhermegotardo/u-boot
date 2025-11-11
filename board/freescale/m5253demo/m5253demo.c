@@ -7,7 +7,7 @@
  * Hayden Fraser (Hayden.Fraser@freescale.com)
  */
 
-#include <common.h>
+#include <config.h>
 #include <init.h>
 #include <net.h>
 #include <asm/global_data.h>
@@ -93,6 +93,7 @@ int testdram(void)
 
 #ifdef CONFIG_IDE
 #include <ata.h>
+#include <ide.h>
 void ide_set_reset(int idereset)
 {
 	atac_t *ata = (atac_t *) CONFIG_SYS_ATA_BASE_ADDR;
@@ -132,7 +133,6 @@ void ide_set_reset(int idereset)
 	}
 }
 #endif				/* CONFIG_IDE */
-
 
 #ifdef CONFIG_DRIVER_DM9000
 int board_eth_init(struct bd_info *bis)

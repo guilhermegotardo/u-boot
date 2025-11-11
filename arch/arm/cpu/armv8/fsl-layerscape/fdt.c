@@ -4,9 +4,10 @@
  * Copyright 2020-2021 NXP
  */
 
-#include <common.h>
+#include <config.h>
 #include <clock_legacy.h>
 #include <efi_loader.h>
+#include <env.h>
 #include <log.h>
 #include <asm/cache.h>
 #include <linux/libfdt.h>

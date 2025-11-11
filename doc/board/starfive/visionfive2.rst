@@ -36,7 +36,7 @@ Currently, the u-boot.itb is used as a dynamic of the OpenSBI FW_DYNAMIC
 firmware with the latest.
 
 Building
-~~~~~~~~
+--------
 
 1. Add the RISC-V toolchain to your PATH.
 2. Setup ARCH & cross compilation environment variable:
@@ -71,8 +71,26 @@ Now build the U-Boot SPL and U-Boot proper
 This will generate the U-Boot SPL image (spl/u-boot-spl.bin.normal.out) as well
 as the FIT image (u-boot.itb) with OpenSBI and U-Boot.
 
+Device-tree selection
+---------------------
+
+Depending on the board version U-Boot set variable $fdtfile to either
+starfive/jh7110-starfive-visionfive-2-v1.2a.dtb or
+starfive/jh7110-starfive-visionfive-2-v1.3b.dtb.
+
+To overrule this selection the variable can be set manually and saved in the
+environment
+
+::
+
+    setenv fdtfile my_device-tree.dtb
+    env save
+
+or the configuration variable CONFIG_DEFAULT_FDT_FILE can be used to provide
+a default value.
+
 Flashing
-~~~~~~~~
+--------
 
 The device firmware loads U-Boot SPL (u-boot-spl.bin.normal.out) from the
 partition with type GUID 2E54B353-1271-4842-806F-E436D6AF6985. You are free
@@ -98,6 +116,7 @@ Format the SD card (make sure the disk has GPT, otherwise use gdisk to switch)
 	  --new=2:8192:16383 --change-name=2:uboot --typecode=2:BC13C2FF-59E6-4262-A352-B275FD6F7172  \
 	  --new=3:16384:1654784 --change-name=3:system --typecode=3:EBD0A0A2-B9E5-4433-87C0-68B6B72699C7 \
 	  /dev/sdb
+	sudo mkfs.vfat -F32 /dev/sdb3
 
 Program the SD card
 
@@ -114,16 +133,10 @@ Program the SD card
 	sudo cp jh7110-starfive-visionfive-2.dtb /mnt/
 	sudo umount /mnt
 
-Booting
-~~~~~~~
-
-The board provides the DIP switches MSEL[1:0] to select the boot device.
-To select booting from SD-card set the DIP switches MSEL[1:0] to 10.
-
-Once you plugin the sdcard and power up, you should see the U-Boot prompt.
+.. include:: jh7110_common.rst
 
 Sample boot log from StarFive VisionFive2 board
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------------------------
 
 .. code-block:: none
 
@@ -133,14 +146,14 @@ Sample boot log from StarFive VisionFive2 board
 	Trying to boot from MMC2
 
 	OpenSBI v1.2-80-g4b28afc
-	____                    _____ ____ _____
-	/ __ \                  / ____|  _ \_   _|
+	  ____                    _____ ____ _____
+	 / __ \                  / ____|  _ \_   _|
 	| |  | |_ __   ___ _ __ | (___ | |_) || |
 	| |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
 	| |__| | |_) |  __/ | | |____) | |_) || |_
-	\____/| .__/ \___|_| |_|_____/|___/_____|
-			| |
-			|_|
+	 \____/| .__/ \___|_| |_|_____/|____/_____|
+	       | |
+	       |_|
 
 	Platform Name             : StarFive VisionFive 2 v1.3B
 	Platform Features         : medeleg
@@ -461,34 +474,3 @@ Sample boot log from StarFive VisionFive2 board
 
 	Welcome to Buildroot
 	buildroot login:
-
-Booting from SPI
-----------------
-
-Use Building steps from "Booting from MMC using U-Boot SPL" section.
-
-Partition the SPI in Linux via mtdblock. (Require to boot the board in
-SD boot mode by enabling MTD block in Linux)
-
-Use prebuilt image from here [1], which support to partition the SPI flash.
-
-
-Program the SPI (Require to boot the board in SD boot mode)
-
-Execute below steps on U-Boot proper,
-
-.. code-block:: none
-
-  sf probe
-  fatload mmc 1:3 $kernel_addr_r u-boot.itb
-  sf update $kernel_addr_r 0x100000 $filesize
-
-  fatload mmc 1:3 $kernel_addr_r u-boot-spl.bin.normal.out
-  sf update $kernel_addr_r 0x0 $filesize
-
-
-Power off the board
-
-Change DIP switches MSEL[1:0] are set to 00, select the boot mode to flash
-
-Power up the board.

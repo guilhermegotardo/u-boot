@@ -4,7 +4,6 @@
  * Copyright (C) 2021 Dario Binacchi <dariobin@libero.it>
  */
 
-#include <common.h>
 #include <mapmem.h>
 #include <dm.h>
 #include <dm/device_compat.h>
@@ -110,8 +109,6 @@ static unsigned int single_read(struct udevice *dev, void *reg)
 	default: /* 32 bits */
 		return readl(reg);
 	}
-
-	return readb(reg);
 }
 
 static void single_write(struct udevice *dev, unsigned int val, void *reg)
